@@ -8,7 +8,7 @@ from utils.logger import logger
 #     def __init__(self, notice_text) -> None:
 #         self.notice_text = notice_text
 
-def alarm_lark_text(webhook:str, text:str, retry:int=3):
+def alarm_lark_text(text:str, webhook:str='', retry:int=3):
     """
     飞书机器人告警
 

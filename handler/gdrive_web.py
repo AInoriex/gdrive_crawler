@@ -9,8 +9,8 @@ from utils.utime import random_sleep
 from utils.request import download_resource
 
 # 导出任务状态
-export_status_ok = "SUCCEEDED" # 可下载
-export_status_queue = "QUEUED" # 队列中
+export_status_ok = str("SUCCEEDED") # 可下载
+export_status_queue = str("QUEUED") # 队列中
 
 # COOKIES
 gdrive_cookies = {
@@ -153,14 +153,19 @@ def gdrive_download_simple_handler(folder_name:str, folder_id:str, download_dir:
 # 格式化文件大小输出
 def format_gdrive_filesize_output(filesize:str) -> str:
     filesize = int(filesize)
-    # 如果GB合适用GB输出
-    if filesize / 1024 / 1024 / 1024 > 100:
+    # 如果大于1GB适用GB输出
+    if filesize / 1024 / 1024 / 1024 > 1:
         filesize = filesize / 1024 / 1024 / 1024
         return f"{filesize:.2f} GB"
-    # 如果MB合适用MB输出
+    # 如果大于100MB用MB输出
     elif filesize / 1024 / 1024 > 100:
         filesize = filesize / 1024 / 1024
         return f"{filesize:.2f} MB"
+    # 如果大于100KB用KB输出
+    elif filesize / 1024 > 100:
+        filesize = filesize / 1024
+        return f"{filesize:.2f} KB"
+    # 其余用B输出
     else:
         return f"{filesize:.2f} B"
 
