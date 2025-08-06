@@ -88,7 +88,7 @@ def download_gdrive_archive(archive:dict, folder_name:str, folder_id:str, downlo
         logger.info(f"准备下载url：{storage_path} 到 {download_filename}，文件大小：{compressed_size}")
         start_time = get_time_stamp()  # 记录下载开始时间
 
-        download_resource(storage_path, download_filename)
+        download_resource(storage_path, download_filename, max_speed_mbps=int(os.getenv("DOWNLOAD_SPEED_MBPS", -1)))
 
         end_time = get_time_stamp()  # 记录下载结束时间
         file_size = os.path.getsize(download_filename)  # 获取文件大小（字节）
