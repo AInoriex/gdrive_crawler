@@ -190,7 +190,7 @@ def filiter_renderme360_dataset_folders(csv_file:str, latest_download_folder_nam
 
 if __name__ == "__main__":
     TARGET_CSV = "renderme-360_dataset_folders.csv"
-    DOWNLOAD_PATH = r"./downloads/renderme-360"
+    DOWNLOAD_PATH = r"./downloads/renderme-360" if os.getenv("DOWNLOAD_PATH","") == "" else os.getenv("DOWNLOAD_PATH")
     # gdown_renderme360_handler()
 
     # 读取renderme-360_dataset_folders.csv的folder_name,folder_id
