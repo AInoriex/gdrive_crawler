@@ -97,13 +97,13 @@ def download_gdrive_archive(archive:dict, folder_name:str, folder_id:str, downlo
 
         alarm_lark_text(
             webhook=webhook,
-            text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载成功 \n\t文件位置：{download_filename} \n\t源链接：{get_google_drive_folder_url(folder_id)} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\t解压后大小：{format_gdrive_filesize_output(size_of_contents)} \n\t下载时长：{format_second_to_time_string(time_used)}秒 \n\t下载速率：{download_speed} \n\t告警时间：{get_now_time_string()}",
+            text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载成功 \n\t文件位置：{download_filename} \n\t源链接：{storage_path} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\t解压后大小：{format_gdrive_filesize_output(size_of_contents)} \n\t下载时长：{format_second_to_time_string(time_used)} \n\t下载速率：{download_speed} \n\t告警时间：{get_now_time_string()}",
         )
     except Exception as e:
         logger.error(f"下载文件 {file_name} 失败，文件夹：{folder_name}，文件夹ID：{folder_id}，archive：{archive}，error: {e}")
         alarm_lark_text(
             webhook=webhook,
-            text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载失败 \n\t文件位置：{download_filename} \n\t源链接：{get_google_drive_folder_url(folder_id)} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\terror: {e} \n\t告警时间：{get_now_time_string()}",
+            text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载失败 \n\t文件位置：{download_filename} \n\t源链接：{storage_path} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\terror: {e} \n\t告警时间：{get_now_time_string()}",
         )
     
 def reverse_web_download_renderme360_handler(folder_name:str, folder_id:str, download_dir:str):
