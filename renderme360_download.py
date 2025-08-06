@@ -10,7 +10,7 @@ from utils.logger import logger
 from utils.ucsv import read_csv
 from utils.lark import alarm_lark_text
 from utils.request import download_resource, get_download_speed
-from utils.utime import get_now_time_string, get_time_stamp, random_sleep
+from utils.utime import get_now_time_string, get_time_stamp, random_sleep, format_second_to_time_string
 import concurrent.futures
 
 from handler.gdrive_web import gdrive_create_exports_task, gdrive_query_exports_task, format_gdrive_filesize_output, get_google_drive_folder_url
@@ -97,7 +97,7 @@ def download_gdrive_archive(archive:dict, folder_name:str, folder_id:str, downlo
 
         alarm_lark_text(
             webhook=webhook,
-            text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载成功 \n\t文件位置：{download_filename} \n\t源链接：{get_google_drive_folder_url(folder_id)} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\t解压后大小：{format_gdrive_filesize_output(size_of_contents)} \n\t下载速率：{download_speed} \n\t告警时间：{get_now_time_string()}",
+            text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载成功 \n\t文件位置：{download_filename} \n\t源链接：{get_google_drive_folder_url(folder_id)} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\t解压后大小：{format_gdrive_filesize_output(size_of_contents)} \n\t下载时长：{format_second_to_time_string(time_used)}秒 \n\t下载速率：{download_speed} \n\t告警时间：{get_now_time_string()}",
         )
     except Exception as e:
         logger.error(f"下载文件 {file_name} 失败，文件夹：{folder_name}，文件夹ID：{folder_id}，archive：{archive}，error: {e}")
