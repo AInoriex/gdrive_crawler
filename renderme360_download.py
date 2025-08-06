@@ -9,7 +9,7 @@ from pprint import pformat
 from utils.logger import logger
 from utils.ucsv import read_csv
 from utils.lark import alarm_lark_text
-from utils.request import download_resource
+from utils.request import download_resource, get_download_speed
 from utils.utime import get_now_time_string, get_time_stamp, random_sleep
 import concurrent.futures
 
@@ -79,22 +79,28 @@ def download_gdrive_archive(archive:dict, folder_name:str, folder_id:str, downlo
         compressed_size = str(archive.get('compressedSize', '-1'))
         size_of_contents = str(archive.get('sizeOfContents', '-1'))
         download_filename = f"{download_dir}/{file_name}"
+        if not (file_name and storage_path):
+            logger.error(f"archive任务解析失败，file_name: {file_name}, storage_path: {storage_path}")
+            raise Exception(f"archive任务解析失败，file_name: {file_name}, storage_path: {storage_path}")
+        if os.path.exists(download_filename):
+            logger.info(f"文件 {download_filename} 已存在，跳过下载")
+            return
         logger.info(f"准备下载url：{storage_path} 到 {download_filename}，文件大小：{compressed_size}")
-        if file_name and storage_path:
-            if os.path.exists(download_filename):
-                logger.info(f"文件 {download_filename} 已存在，跳过下载")
-                return
-            download_resource(storage_path, download_filename)
-            alarm_lark_text(
-                webhook=webhook,
-                text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载成功 \n\t文件位置：{download_filename} \n\t源链接：{get_google_drive_folder_url(folder_id)} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\t解压后大小：{format_gdrive_filesize_output(size_of_contents)} \n\t告警时间：{get_now_time_string()}",
+        start_time = get_time_stamp()  # 记录下载开始时间
 
-            )
-        else:
-            logger.error(f"导出任务结果为空，file_name: {file_name}, storage_path: {storage_path}")
-            raise Exception(f"导出任务结果为空，file_name: {file_name}, storage_path: {storage_path}")
+        download_resource(storage_path, download_filename)
+
+        end_time = get_time_stamp()  # 记录下载结束时间
+        file_size = os.path.getsize(download_filename)  # 获取文件大小（字节）
+        time_used = end_time - start_time  # 计算下载用时（秒）
+        download_speed = get_download_speed(file_size, time_used)
+
+        alarm_lark_text(
+            webhook=webhook,
+            text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载成功 \n\t文件位置：{download_filename} \n\t源链接：{get_google_drive_folder_url(folder_id)} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\t解压后大小：{format_gdrive_filesize_output(size_of_contents)} \n\t下载速率：{download_speed} \n\t告警时间：{get_now_time_string()}",
+        )
     except Exception as e:
-        logger.error(f"下载文件 {file_name} 失败，文件夹：{folder_name}，文件夹ID：{folder_id}，error: {e}")
+        logger.error(f"下载文件 {file_name} 失败，文件夹：{folder_name}，文件夹ID：{folder_id}，archive：{archive}，error: {e}")
         alarm_lark_text(
             webhook=webhook,
             text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹 {folder_name} 下文件 {file_name} 下载失败 \n\t文件位置：{download_filename} \n\t源链接：{get_google_drive_folder_url(folder_id)} \n\t文件大小：{format_gdrive_filesize_output(compressed_size)} \n\terror: {e} \n\t告警时间：{get_now_time_string()}",

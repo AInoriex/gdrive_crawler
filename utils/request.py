@@ -10,6 +10,23 @@ def get_file_size(filePath):
     fsize = os.path.getsize(filePath)
     return round(fsize / float(1024 * 1024), 2)
 
+def get_download_speed(file_size:float, time_seconds_used:int):
+    """
+    计算下载速度
+    :param file_size: 文件大小（字节Byte）
+    :param time_seconds_used: 下载时间（秒）
+    :return: 下载速度
+    """
+    if time_seconds_used > 0:
+        download_speed = file_size / time_seconds_used / 1024
+        if download_speed >= 1000:
+            speed_str = f"{download_speed / 1024:.2f} MB/s"
+        else:
+            speed_str = f"{download_speed:.2f} KB/s"
+    else:
+        speed_str = "NA"
+    return speed_str
+
 def get_random_ua():
     """
     Generates a random User-Agent based on a random OS and browser
