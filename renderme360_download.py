@@ -191,26 +191,34 @@ def filiter_renderme360_dataset_folders(csv_file:str, latest_download_folder_nam
         for row in batch_row:
             folder_name = row['folder_name']
             # 比较文件夹名称（作为字符串比较，因为它们是等长的数字字符串）
-            if folder_name > latest_download_folder_name:
+            if latest_download_folder_name == '' or folder_name > latest_download_folder_name:
                 result_list.append(row)
     return result_list
 
-if __name__ == "__main__":
+def main():
     TARGET_CSV = "renderme-360_dataset_folders.csv"
     DOWNLOAD_PATH = r"./downloads/renderme-360" if os.getenv("DOWNLOAD_PATH","") == "" else os.getenv("DOWNLOAD_PATH")
     # gdown_renderme360_handler()
 
-    # 读取renderme-360_dataset_folders.csv的folder_name,folder_id
-    folder_list = filiter_renderme360_dataset_folders(TARGET_CSV, latest_download_folder_name='0090')
-    for data in folder_list:
-        folder_id = data["folder_id"]
-        folder_name = data["folder_name"]
-        alarm_lark_text(
-            webhook=os.getenv("LARK_WEBHOOK"),
-            text=f"[GDRIVE DOWNLOADER] 开始处理数据集 `renderme-360` 文件夹 {folder_name} \n\t文件夹ID：{folder_id} \n\t进度：{folder_list.index(data)+1}/{len(folder_list)} \n\t告警时间：{get_now_time_string()}",
-        )
-        reverse_web_download_renderme360_handler(
-            folder_id=folder_id,
-            folder_name=folder_name,
-            download_dir=DOWNLOAD_PATH,
-        )
+    try:
+        # 读取renderme-360_dataset_folders.csv的folder_name,folder_id
+        folder_list = filiter_renderme360_dataset_folders(TARGET_CSV, latest_download_folder_name='')
+        for data in folder_list:
+            folder_id = data["folder_id"]
+            folder_name = data["folder_name"]
+            alarm_lark_text(
+                text=f"[GDRIVE DOWNLOADER] 开始处理数据集 `renderme-360` 文件夹 {folder_name} \n\t文件夹ID：{folder_id} \n\t进度：{folder_list.index(data)+1}/{len(folder_list)} \n\t告警时间：{get_now_time_string()}",
+            )
+            reverse_web_download_renderme360_handler(
+                folder_id=folder_id,
+                folder_name=folder_name,
+                download_dir=DOWNLOAD_PATH,
+            )
+        logger.info(f"数据集 `renderme-360` 文件夹下载完毕")
+        alarm_lark_text(text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 所有文件夹下载完成 \n\tCSV:{TARGET_CSV} \n\t下载路径：{DOWNLOAD_PATH} \n\t告警时间：{get_now_time_string()}")
+    except Exception as e:
+        logger.error(f"数据集 `renderme-360` 文件夹下载异常退出, error:{e}")
+        alarm_lark_text(text=f"[GDRIVE DOWNLOADER] 数据集 `renderme-360` 文件夹下载异常退出 \n\terror: {e} \n\t告警时间：{get_now_time_string()}")
+
+if __name__ == "__main__":
+   main()

@@ -6,7 +6,7 @@ import requests
 import urllib.request as request
 
 def get_file_size(filePath):
-    ''' 获取文件大小(MB) '''
+    ''' 获取本地文件大小(MB) '''
     fsize = os.path.getsize(filePath)
     return round(fsize / float(1024 * 1024), 2)
 
@@ -27,59 +27,99 @@ def get_download_speed(file_size:float, time_seconds_used:int):
         speed_str = "NA"
     return speed_str
 
-def get_random_ua():
-    """
-    Generates a random User-Agent based on a random OS and browser
+def get_random_headers():
+    ''' 随机生成请求头
     
-    The random OS can be one of Windows, macOS, or Linux.
-    The random browser can be one of safari, firefox, edge (on Windows), or chrome (on Windows or macOS).
-    
-    Returns a dictionary with three keys: "os", "browser", and "ua", containing the random OS, browser, and User-Agent, respectively.
-    """
-    # os_list = ["Windows", "macOS", "Linux"]
-    # operate_sys = choice(os_list)
-    # # print(f"随机os > {operate_sys}")
-    # browsers_list = ['safari', 'firefox']
-    # if operate_sys == "Windows":
-    #     browsers_list.append("edge")
-    # if operate_sys != 'Linux':
-    #     browsers_list.append("chrome")
-    # br = choice(browsers_list)
-    # # print(f"随机browser > {br}")
-    ua = UserAgent(browsers=['chrome'], os=['windows'])
+    @Example Header
+    {
+        'sec-ch-ua': '"Firefox";v="99", "Gecko";v="99"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"macOS"', 
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36', 
+        'Accept': 'text/html,application/json;q=0.9,application/x-www-form-urlencoded;q=0.8,application/xml;q=0.8,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+        'Accept-Charset': 'utf-8'
+    }
+    '''
+    from fake_useragent import UserAgent
+    ua = UserAgent()
+
+    # 随机选择浏览器类型
+    browser_type = choice(['chrome', 'firefox', 'safari', 'edge', 'opera'])
+
+    # 随机选择是移动端还是网页端
+    is_mobile = choice([True, False])
+
+    # 随机选择操作系统
+    if is_mobile:
+        os = choice(['android', 'ios'])
+    else:
+        # os = choice(['windows', 'macos', 'linux'])
+        os = choice(['windows', 'macos'])
+
+    # 随机生成 sec-ch-ua 字段
+    if browser_type == 'chrome':
+        sec_ch_ua = '" Not A;Brand";v="99", "Chromium";v="99", "Google Chrome";v="99"'
+    elif browser_type == 'firefox':
+        sec_ch_ua = '"Firefox";v="99", "Gecko";v="99"'
+    elif browser_type == 'safari':
+        sec_ch_ua = '"Safari";v="99", "WebKit";v="99"'
+    elif browser_type == 'edge':
+        sec_ch_ua = '"Microsoft Edge";v="99", "Chromium";v="99"'
+    else:
+        sec_ch_ua = '"Opera";v="99", "Chromium";v="99"'
+
+    # 随机生成 sec-ch-ua-mobile 字段
+    sec_ch_ua_mobile = "?1" if is_mobile else "?0"
+
+    # 随机生成 sec-ch-ua-platform 字段
+    if os == 'windows':
+        sec_ch_ua_platform = '"Windows"'
+    elif os == 'macos':
+        sec_ch_ua_platform = '"macOS"'
+    elif os == 'linux':
+        sec_ch_ua_platform = '"Linux"'
+    elif os == 'android':
+        sec_ch_ua_platform = '"Android"'
+    else:
+        sec_ch_ua_platform = '"iOS"'
+
+    # 随机生成 User-Agent 字段
     user_agent = ua.random
-    # print(f"随机生成的User-Agent: {user_agent}")
-    return {
-        "os": 'Windows',
-        "browser": 'chrome',
-        "ua": user_agent
+
+    # 定义固定的 Accept, Accept-Encoding, Accept-Language, Accept-Charset 字段
+    accept = "text/html,application/json;q=0.9,application/x-www-form-urlencoded;q=0.8,application/xml;q=0.8,image/avif,image/webp,image/apng,*/*;q=0.8"
+    accept_encoding = "gzip, deflate, br"
+    accept_language = "en-GB,en-US;q=0.9,en;q=0.8"
+    accept_charset = "utf-8"
+
+    # 构造请求头字典
+    headers = {
+        "sec-ch-ua": sec_ch_ua,
+        "sec-ch-ua-mobile": sec_ch_ua_mobile,
+        "sec-ch-ua-platform": sec_ch_ua_platform,
+        "User-Agent": user_agent,
+        "Accept": accept,
+        "Accept-Encoding": accept_encoding,
+        "Accept-Language": accept_language,
+        "Accept-Charset": accept_charset
     }
 
-def get_random_headers():
-    """
-    随机生成headers
-    """
-    ua = get_random_ua()
-    headers = {
-        'accept-language': 'zh-CN,zh;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6',
-        'cache-control': 'no-cache',
-        'sec-ch-ua': '"Microsoft Edge";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'sec-ch-ua-platform': ua.get('os'),
-        'user-agent': ua.get('ua'),
-    }
     return headers
 
-def download_resource(url:str, filename:str, proxies=None, download_size_limit:int=-1, max_speed_mbps:int=-1, retry:int=3):
+def download_resource(url:str, filename:str, proxies=None, download_size_limit:int=-1, max_speed_mbps:int=-1, retry:int=3)->str:
     """
     使用代理服务器从url处下载文件到本地的filename
 
     :param url: 要下载的文件的url
     :param filename: 保存到本地的文件名
-    :return: None
+    :param proxies: 下载代理服务器，格式为{"http": "http://127.0.0.1:7890", "https": "http://127.0.0.1:7890"}
+    :param download_size_limit: 下载大小限制，单位为MB，-1表示不限制
+    :param max_speed_mbps: 最大下载速度，单位为Mbps，-1表示不限制
+    :param retry: 重试次数，默认3次
+    :return: 下载后的文件路径
+
     """
     # print(f"download_resource > 参数：{url} -- {filename}")
     if url == "" or filename == "":
@@ -89,7 +129,7 @@ def download_resource(url:str, filename:str, proxies=None, download_size_limit:i
     max_speed_bytes = max_speed_mbps * 1024 * 1024  # 转换为字节/秒
     try:
         # 发送请求，设置流式响应以便跟踪下载进度
-        response = requests.get(url, headers=get_random_headers(), proxies=proxies, stream=True)
+        response = requests.get(url, headers=get_random_headers(), proxies=proxies, stream=True, timeout=30)
         response.raise_for_status()  # 检查请求是否成功
         # 获取文件总大小
         total_size = int(response.headers.get('content-length', 0))
